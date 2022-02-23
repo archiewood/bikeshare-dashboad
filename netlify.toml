@@ -1,0 +1,2 @@
+[template.environment]
+  SSL= { rejectUnauthorized: false }
