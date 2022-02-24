@@ -12,26 +12,30 @@ A key KPI for how well the bike network is therefore what proportion of stations
 ```bike_query
 
 select
-    date_trunc('minute', timestamp)::timestamp as timestamp_min,
+    date_trunc('minute', timestamp)::timestamp as timestamp_date,
     case 
         when num_bikes_available < 5 then cast(num_bikes_available as text)
         else '5+'
     end as bikes_available_group, 
-    count(*) as bikes_available 
+    count(*) / (sum(count(*)) over (partition by timestamp)) as stationsavailable_pct
 from station_status_log
-group by timestamp_min, bikes_available_group 
-order by timestamp_min, bikes_available_group 
-limit 500
+group by timestamp, bikes_available_group 
+order by timestamp, bikes_available_group
+limit 300
 
 ```
 
 <AreaChart 
     data={data.bike_query} 
-    x=timestamp_min
-    y=bikes_available
+    x=timestamp_date
+    y=stationsavailable_pct
     series=bikes_available_group
-    sort =true
+    fmt=pct
+    sort =false
+    title='Percent of Stations with each number of Bikes available'
+    yAxisTitle='% of Stations'
+    xAxisTitle='Date & Time'
 />
 
 
-The most recent day of data was logged on <Value data={data.bike_query} fmt=date/> and the number of bikes available was <Value data={data.bike_query} column="bikes_available"/>.
+The most recent day of data was logged on <Value data={data.bike_query} fmt=date/> and the number of bikes available was <Value data={data.bike_query} column="stationsavailable_PCT"/>.
